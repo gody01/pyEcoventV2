@@ -1,7 +1,6 @@
 #!/bin/bash
 #
 
+alias python=python3.10
 
-python3 setup.py build; 
-python3 setup.py sdist;
-sudo python3 setup.py install
+python3 -m build

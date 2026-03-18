@@ -1,5 +1,5 @@
 """ Version  """
-__version__ = "0.9.10"
+__version__ = "0.9.15"
 
 """Library to handle communication with Wifi ecofan from TwinFresh / Blauberg"""
 import socket
@@ -20,6 +20,7 @@ class Fan(object):
         'dec': "05",
         'resp': "06"
     }
+
     states = {
         0: 'off',
         1: 'on' ,
@@ -44,11 +45,18 @@ class Fan(object):
         0: 'off', 
         1: 'on' 
     }
+    
+    boost_statuses = {
+        0: 'off', 
+        1: 'on',
+        2: 'delay'
+    }    
 
     airflows = {
         0: 'ventilation',
         1: 'heat_recovery', 
-        2: 'air_supply' 
+        2: 'air_supply',
+        3: 'something' 
     } 
 
     alarms = {
@@ -79,7 +87,10 @@ class Fan(object):
                     0x0300: 'Vento Expert A50-1/A85-1/A100-1 W V.2', 
                     0x0400: 'Vento Expert Duo A30-1 W V.2', 
                     0x0500: 'Vento Expert A30 W V.2',
-                    0x0e00: 'Oxxify smart 50' }
+                    0x0E00: 'TwinFresh Style Wifi V.2'
+                    0x1100: 'Vents Breezy 160-E',
+                    0x1B00: 'Vento inHome S11 W'
+    }
 
     wifi_operation_modes = {
         1: 'client' ,
@@ -117,29 +128,17 @@ class Fan(object):
         0x004a: [ 'fan1_speed', None ],
         0x004b: [ 'fan2_speed', None ],
         0x0064: [ 'filter_timer_countdown', None ],
-        0x0065: [ 'filter_timer_reset', None ],		# WRITE ONLY
         0x0066: [ 'boost_time', None ],
         0x006f: [ 'rtc_time', None ],
         0x0070: [ 'rtc_date', None ],
-        0x0072: [ 'weekly_schedule_state', states ],
-        0x0077: [ 'weekly_schedule_setup', None ],        
         0x007c: [ 'device_search', None ],
         0x007d: [ 'device_password', None ],
         0x007e: [ 'machine_hours', None ],
-        0x0080: [ 'reset_alarms', None ],	# WRITE ONLY
+        0x0081: [ 'heater_status', statuses ],
         0x0083: [ 'alarm_status', alarms ],
         0x0085: [ 'cloud_server_state', states ],
         0x0086: [ 'firmware', None ],
         0x0088: [ 'filter_replacement_status', statuses ],
-        0x0094: [ 'wifi_operation_mode', wifi_operation_modes  ],
-        0x0095: [ 'wifi_name' , None ],
-        0x0096: [ 'wifi_pasword', None ],
-        0x0099: [ 'wifi_enc_type', wifi_enc_types ],
-        0x009a: [ 'wifi_freq_chnnel', None ],
-        0x009b: [ 'wifi_dhcp', wifi_dhcps  ],
-        0x009c: [ 'wifi_assigned_ip', None ],
-        0x009d: [ 'wifi_assigned_netmask', None ],
-        0x009e: [ 'wifi_main_gateway', None ],
         0x00a3: [ 'curent_wifi_ip', None ],
         0x00b7: [ 'airflow' , airflows ],
         0x00b8: [ 'analogV_treshold', None ],
@@ -148,13 +147,24 @@ class Fan(object):
         0x0303: [ 'party_mode_timer', None ],
         0x0304: [ 'humidity_status', statuses ],
         0x0305: [ 'analogV_status', statuses ],
-    }
-
-    write_only_params = {
+        0x0306: [ 'beeper', statuses ],
+        # Write only parameters
+        0x0065: [ 'filter_timer_reset', None ],		# WRITE ONLY
+        0x0072: [ 'weekly_schedule_state', states ],
         0x0077: [ 'weekly_schedule_setup', None ],
-        0x0087: [ 'factory_reset', None ],
-        0x00a0: [ 'wifi_apply_and_quit', None ],
-        0x00a2: [ 'wifi_discard_and_quit', None ],
+        0x0080: [ 'reset_alarms', None ],	# WRITE ONLY
+#        0x0087: [ 'factory_reset', None ],
+#        0x00a0: [ 'wifi_apply_and_quit', None ],
+#        0x00a2: [ 'wifi_discard_and_quit', None ],
+        0x0094: [ 'wifi_operation_mode', wifi_operation_modes ],
+        0x0095: [ 'wifi_name' , None ],
+        0x0096: [ 'wifi_pasword', None ],
+        0x0099: [ 'wifi_enc_type', wifi_enc_types ],
+        0x009a: [ 'wifi_freq_chnnel', None ],
+        0x009b: [ 'wifi_dhcp', wifi_dhcps  ],
+        0x009c: [ 'wifi_assigned_ip', None ],
+        0x009d: [ 'wifi_assigned_netmask', None ],
+        0x009e: [ 'wifi_main_gateway', None ],
     }
 
     _name = None
@@ -165,6 +175,7 @@ class Fan(object):
     _state = None
     _speed = None
     _boost_status = None
+    _heater_status = None
     _timer_mode = None
     _timer_counter = None
     _humidity_sensor_state = None
@@ -207,6 +218,8 @@ class Fan(object):
     _night_mode_timer = None
     _party_mode_timer = None
     _humidity_status = None
+    _analogV_status = None
+    _beeper = None
 
     def __init__(self, host, password="1111", fan_id="DEFAULT_DEVICEID", name="ecofanv2", port=4000 ):
         self._name = name
@@ -221,7 +234,9 @@ class Fan(object):
         if self._id == "DEFAULT_DEVICEID":
             self.get_param( 'device_search' )
             self._id = self.device_search
-        self.update()
+        if not self._id:
+            return False
+        return self.update()
 
     def search_devices (self, addr = "0.0.0.0", port = 4000 ):
         payload="FDFD021044454641554c545f44455649434549440431313131017cf805"
@@ -229,7 +244,7 @@ class Fan(object):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         sock.bind((addr, port))
-        sock.settimeout(1.0)
+        sock.settimeout(0.1)
         ips = []
         i = 10
         while ( i > 1 ):
@@ -245,19 +260,23 @@ class Fan(object):
             if self._device_search != "DEFAULT_DEVICEID":
                 ips.append(addr[0])
                 ips=list(set(ips))
-            time.sleep(0.1)
+            # time.sleep(0.1)
         sock.close()
         return ips
 
     def connect(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket.settimeout(4)
-        try:
-            self.socket.connect((self._host, self._port))
-            return self.socket
-        except self.socket.timeout as err:
-            print ( "Connection timeout: " + self._host + " " + str(err) )
-            return None
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        self.socket.settimeout(0.1)
+        self._socket_connected = False
+        while not self._socket_connected:
+            try:
+                self.socket.connect((self._host, self._port))
+                return self.socket
+            except OSError:
+                self.socket.close()
+                return None
 
     def str2hex(self,str_msg):
         return "".join("{:02x}".format(ord(c)) for c in str_msg)
@@ -291,6 +310,7 @@ class Fan(object):
                 return i
                 
     def get_params_values(self, idx, value ):
+        # print ( "EcoventV2: " + idx,  file = sys.stderr )
         index = self.get_params_index(idx)
         if index != None:
             if self.params[index][1] != None:
@@ -302,23 +322,26 @@ class Fan(object):
             return [ None, None ]
 
     def send(self, data):
+        # print ( "EcoventV2: " + data , file = sys.stderr )
         try:
             self.socket = self.connect()
             payload = self.get_header() + data
             payload = self.HEADER + payload + self.chksum(payload)
             response = self.socket.sendall( bytes.fromhex(payload))
             return response
-        except self.socket.timeout as err:
-            print ( "Connection timeout: " + self._host + " " + str(err) )
+        except socket.timeout:
+            # print ( "EcoventV2: Connection timeout send to device: " + self._host , file = sys.stderr )
             return None
 
     def receive(self):
         try:
-            response = self.socket.recv(4096)
+            response = self.socket.recv(1024)
+            self.socket.close()
             return response
-        except socket.timeout as err:
-            print ( "Connection timeout: " + self._host + " " + str(err) )
-            return None
+        except socket.timeout:
+            # print ( "EcoventV2: Connection timeout receive from device: " + self._host , file = sys.stderr )
+            self.socket.close()
+            return ( False )
 
     def do_func (self, func, param, value="" ):
         out = ""
@@ -341,26 +364,36 @@ class Fan(object):
             parameter += n_out  + value
             if out == "0077":
                 value = ""
-        data = func + parameter 
-        self.send(data)
-        response = self.receive()
-        if response:
-            self.parse_response(response)
-            self.socket.close()
+        data = func + parameter
+        response = False
+        i = 0
+        while not response:
+            i = i + 1
+            self.send(data)
+            response = self.receive()
+            if response:
+                self.parse_response(response)
+                return True
+            if i >= 10:
+                # print ("EcoventV2: Timeout device: " + self._host + " bail out after " + str(i) + " retries" , file = sys.stderr )
+                return False
+            # time.sleep(0.1)
 
     def update(self):
         request = "";
         for param in self.params:
             request += hex(param).replace("0x","").zfill(4)
-        self.do_func(self.func['read'], request)
+        return self.do_func(self.func['read'], request)
 
     def set_param ( self, param, value ):
         valpar = self.get_params_values (param, value)
+        # print ( "EcoventV2: " + " " + param + "/" + value , file = sys.stderr )
         if valpar[0] !=  None:
             if valpar[1] != None:
                 self.do_func( self.func['write_return'], hex(valpar[0]).replace("0x","").zfill(4), hex(valpar[1]).replace("0x","").zfill(2) )
             else:
                 self.do_func( self.func['write_return'], hex(valpar[0]).replace("0x","").zfill(4), value )
+                
                 
     def get_param ( self, param ):
         idx = self.get_params_index (param)
@@ -412,7 +445,7 @@ class Fan(object):
             self.do_func ( self.func['write_return'], request, value )
 
     def parse_response(self,data):
-        pointer = 20 ; # discard header bytes 
+        pointer = 20 ; # discard header bytes
         length = len(data) - 2 ;
         pwd_size = data[pointer] 
         pointer += 1
@@ -530,7 +563,16 @@ class Fan(object):
     @boost_status.setter
     def boost_status(self, input):
         val = int (input, 16 )
-        self._boost_status = self.statuses[val]
+        self._boost_status = self.boost_statuses[val]
+
+    @property
+    def heater_status(self):
+        return self._heater_status
+
+    @heater_status.setter
+    def heater_status(self, input):
+        val = int (input, 16 )
+        self._heater_status = self.heater_status[val]
 
     @property
     def timer_mode(self):
@@ -680,7 +722,6 @@ class Fan(object):
     @rtc_time.setter
     def rtc_time(self, input ):
         val = int(input,16).to_bytes(3,'big')
-        
         self._rtc_time = str ( val[2] ) + "h " +str ( val[1] ) + "m " + str ( val[0] ) + "s " 
 
     @property
@@ -883,7 +924,7 @@ class Fan(object):
     @unit_type.setter
     def unit_type(self, input):
         val = int (input, 16 )
-        self._unit_type = self.unit_types[val]        
+        self._unit_type = self.unit_types.get(val, "Unknown model %s" % val)
 
     @property
     def night_mode_timer (self):
@@ -920,6 +961,15 @@ class Fan(object):
     def analogV_status(self, input):
         val = int (input, 16 )
         self._analogV_status = self.statuses[val]
+
+    @property
+    def beeper (self):
+        return self._beeper
+
+    @beeper.setter
+    def beeper(self, input):
+        val = int (input, 16 )
+        self._beeper = self.statuses[val]
 
     def reset_filter_timer(self):
         self.set_param('filter_timer_reset', "")
