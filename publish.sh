@@ -1,11 +1,11 @@
 #!/bin/bash
 #
 
-alias python=python3.10
+alias python=python3.11
 
-python3.10 -m twine check  dist/*
+python3 -m twine check  dist/*
 
 if [ $? == 0 ]; then 
- python3.10 -m twine upload  dist/*
+ python3 -m twine upload  dist/*
 fi
 

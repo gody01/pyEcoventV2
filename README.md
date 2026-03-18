@@ -70,3 +70,5 @@ Fans from Flexit are identical and should work, but this is not yet tested:
 -- fix filter_timer_countdown setter to support 4 bytes input
 - v 0.9.19
 -- revert filter_timer_countdown setter to 3 bytes, to show correct information on Blauberg
+- v 0.9.23
+-- merged fixes from github contributors
