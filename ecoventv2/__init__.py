@@ -87,7 +87,8 @@ class Fan(object):
                     0x0300: 'Vento Expert A50-1/A85-1/A100-1 W V.2', 
                     0x0400: 'Vento Expert Duo A30-1 W V.2', 
                     0x0500: 'Vento Expert A30 W V.2', 
-                    0x1100: 'Vents Breezy 160-E' 
+                    0x1100: 'Vents Breezy 160-E',
+                    0x1B00: 'Vento inHome S11 W'
     }
 
     wifi_operation_modes = {
