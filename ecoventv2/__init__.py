@@ -438,9 +438,9 @@ class Fan(object):
             value = math.ceil(255 / 100 * speed)
             value = hex(value).replace("0x","").zfill(2)
             self.do_func ( self.func['write_return'], request, value )
-            request = "0002"
-            value = "ff"
-            self.do_func ( self.func['write_return'], request, value )
+#            request = "0002"
+#            value = "ff"
+#            self.do_func ( self.func['write_return'], request, value )
 
     def set_man_speed(self, speed):
         if speed >= 14 and speed <= 255:
@@ -448,9 +448,9 @@ class Fan(object):
             value = speed
             value = hex(value).replace("0x","").zfill(2)
             self.do_func ( self.func['write_return'], request, value )
-            request = "0002"
-            value = "ff"
-            self.do_func ( self.func['write_return'], request, value )
+#            request = "0002"
+#            value = "ff"
+#            self.do_func ( self.func['write_return'], request, value )
 
     def set_airflow(self, val):
         if val >= 0 and val <= 2:

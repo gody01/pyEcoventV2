@@ -24,23 +24,22 @@ for addr in ips:
 #            attr = str(getattr(fan , fan.params[i][0]))
 #            print ( fan.params[i][0] + ": " + attr)
 
+        fan.set_man_speed_percent(5)
+#        fan.set_param('speed','manual') #'low','medium','high','manual'
+        print ( 'man_speed: ' + str(fan.man_speed) )
 
 #fan.set_param('airflow','heat_recovery') # 'ventilation', 'heat_recovery', 'air_supply'
 #print ( 'airflow: ' + fan.airflow )
 ## fan.reset_filter_timer()
-        print ( 'Filter Timer: ' + fan.filter_timer_countdown )
-        fan.set_param('speed','high') #'low','medium','high','manual'
-        fan.set_man_speed_percent(100)
-#fan.set_param('speed','manual') #'low','medium','high','manual'
+#        print ( 'Filter Timer: ' + fan.filter_timer_countdown )
+#        fan.set_param('speed','high') #'low','medium','high','manual'
 
-#for i in range(0, 100):
-#    
-#    fan.update()
-#    man_speed=i
-#    print ( 'man_speed: ' + str(fan.man_speed) )
+
+#for i in range(0, 30):
+#    man_speed=22
 #    fan.set_param('man_speed', hex(math.ceil( man_speed * 255 / 100 )).replace("0x","").zfill(2) ) # hex(math.ceil( speed_in_% * 255 / 100 )).replace("0x","").zfill(2)
-#    print ( 'man_speed: ' + str(fan.man_speed) )
-
+#    fan.update()
+#    
 
 
 #print (ips[0])
