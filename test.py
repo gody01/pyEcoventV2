@@ -10,7 +10,7 @@ from ecoventv2 import Fan
 # ips = fan.search_devices('0.0.0.0')
 # print ( ips ) 
 
-ips=["10.94.0.105"]
+ips=["10.94.0.107"]
 
 for addr in ips:
     print ( addr ) 
@@ -62,12 +62,12 @@ print ( 'Filter Timer: ' + fan.filter_timer_countdown )
 # fan.set_param('state','togle')
 
 # fan.set_param('state','off') #'on','off','togle'
-# fan.set_param('speed','manual') #'low','medium','high','manual'
-# print ( 'speed: ' + fan.speed )
-# print ( 'man_speed: ' + fan.man_speed )
-# print ( 'fan1_speed: ' + fan.fan1_speed )
-# print ( 'fan2_speed: ' + fan.fan2_speed )
-# print ( 'airflow: ' + fan.airflow )
+fan.set_param('speed','manual') #'low','medium','high','manual'
+print ( 'speed: ' + fan.speed )
+print ( 'man_speed: ' + str(fan.man_speed) )
+#print ( 'fan1_speed: ' + fan.fan1_speed )
+#print ( 'fan2_speed: ' + fan.fan2_speed )
+#print ( 'airflow: ' + fan.airflow )
 
 # Set examples
 # fan.set_param('state','togle') #'on','off','togle'
@@ -75,9 +75,9 @@ print ( 'Filter Timer: ' + fan.filter_timer_countdown )
 # fan.set_param('speed','manual') #'low','medium','high','manual'
 # print ( 'speed: ' + fan.speed )
 
-#man_speed = 4
-# fan.set_param('man_speed', hex(math.ceil( man_speed * 255 / 100 )).replace("0x","").zfill(2) ) # hex(math.ceil( speed_in_% * 255 / 100 )).replace("0x","").zfill(2)
-# print ( 'man_speed: ' + fan.man_speed )
+man_speed = 100
+fan.set_param('man_speed', hex(math.ceil( man_speed * 255 / 100 )).replace("0x","").zfill(2) ) # hex(math.ceil( speed_in_% * 255 / 100 )).replace("0x","").zfill(2)
+print ( 'man_speed: ' + str(fan.man_speed) )
 
 # fan.set_param('timer_mode','off') # 'off', 'night', 'party'
 # print ( 'timer_mode: ' + fan.timer_mode )
