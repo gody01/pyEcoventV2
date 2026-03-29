@@ -10,7 +10,7 @@ from ecoventv2 import Fan
 # ips = fan.search_devices('0.0.0.0')
 # print ( ips ) 
 
-ips=["10.94.0.105"]
+ips=["10.94.0.107"]
 
 for addr in ips:
     print ( addr ) 
@@ -28,7 +28,19 @@ for addr in ips:
 #fan.set_param('airflow','heat_recovery') # 'ventilation', 'heat_recovery', 'air_supply'
 #print ( 'airflow: ' + fan.airflow )
 ## fan.reset_filter_timer()
-print ( 'Filter Timer: ' + fan.filter_timer_countdown )
+        print ( 'Filter Timer: ' + fan.filter_timer_countdown )
+        fan.set_param('speed','high') #'low','medium','high','manual'
+        fan.set_man_speed_percent(100)
+#fan.set_param('speed','manual') #'low','medium','high','manual'
+
+#for i in range(0, 100):
+#    
+#    fan.update()
+#    man_speed=i
+#    print ( 'man_speed: ' + str(fan.man_speed) )
+#    fan.set_param('man_speed', hex(math.ceil( man_speed * 255 / 100 )).replace("0x","").zfill(2) ) # hex(math.ceil( speed_in_% * 255 / 100 )).replace("0x","").zfill(2)
+#    print ( 'man_speed: ' + str(fan.man_speed) )
+
 
 
 #print (ips[0])

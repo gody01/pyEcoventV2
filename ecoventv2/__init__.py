@@ -7,7 +7,7 @@ import sys
 import time
 import asyncio
 import math
-from homeassistant.core import HomeAssistant
+# from homeassistant.core import HomeAssistant
 
 class Fan(object):
     """Class to communicate with the ecofan"""
@@ -223,8 +223,7 @@ class Fan(object):
     _analogV_status = None
     _beeper = None
 
-    def __init__(self, hass: HomeAssistant, host, password="1111", fan_id="DEFAULT_DEVICEID", name="ecofanv2", port=4000 ):
-        self._hass = hass
+    def __init__(self, host, password="1111", fan_id="DEFAULT_DEVICEID", name="ecofanv2", port=4000 ):
         self._name = name
         self._host = host
         self._port = port
@@ -235,11 +234,11 @@ class Fan(object):
 
     def init_device (self):
         if self._id == "DEFAULT_DEVICEID":
-            self.get_param_await( 'device_search' )
+            self.get_param( 'device_search' )
             self._id = self.device_search
         if not self._id:
             return False
-        return self.update_await()
+        return self.update()
 
     def search_devices (self, addr = "0.0.0.0", port = 4000 ):
         payload="FDFD021044454641554c545f44455649434549440431313131017cf805"
@@ -389,14 +388,14 @@ class Fan(object):
             # await asyncio.sleep(0.1)  # --> needs changing to async functions, ....
             # time.sleep(0.1)
 
-    def update_internal(self):
+    def update(self):
         request = ""
         for param in self.params:
             request += hex(param).replace("0x","").zfill(4)
         return self.do_func(self.func['read'], request)
 
-    async def update_await(self):
-        return await self._hass.async_add_executor_job(self.update_internal)
+    # async def update_await(self):
+    #    return await self._hass.async_add_executor_job(self.update)
 
     def set_param( self, param, value ):
         valpar = self.get_params_values (param, value)
@@ -407,13 +406,13 @@ class Fan(object):
             else:
                 self.do_func( self.func['write_return'], hex(valpar[0]).replace("0x","").zfill(4), value )
 
-    def get_param_internal( self, param ):
+    def get_param( self, param ):
         idx = self.get_params_index (param)
         if idx !=  None:
                 self.do_func( self.func['read'], hex(idx).replace("0x","").zfill(4) )
 
-    async def get_param_await(self, param):
-        return await self._hass.async_add_executor_job(self.get_param_internal, param)
+    # async def get_param_await(self, param):
+    #    return await self._hass.async_add_executor_job(self.get_param, param)
 
     def set_state_on(self):
         request = "0001";
@@ -439,9 +438,9 @@ class Fan(object):
             value = math.ceil(255 / 100 * speed)
             value = hex(value).replace("0x","").zfill(2)
             self.do_func ( self.func['write_return'], request, value )
-#            request = "0002"
-#            value = "ff"
-#            self.do_func ( self.func['write_return'], request, value )
+            request = "0002"
+            value = "ff"
+            self.do_func ( self.func['write_return'], request, value )
 
     def set_man_speed(self, speed):
         if speed >= 14 and speed <= 255:
@@ -449,9 +448,9 @@ class Fan(object):
             value = speed
             value = hex(value).replace("0x","").zfill(2)
             self.do_func ( self.func['write_return'], request, value )
-#            request = "0002"
-#            value = "ff"
-#            self.do_func ( self.func['write_return'], request, value )
+            request = "0002"
+            value = "ff"
+            self.do_func ( self.func['write_return'], request, value )
 
     def set_airflow(self, val):
         if val >= 0 and val <= 2:
