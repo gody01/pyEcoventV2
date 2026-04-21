@@ -6,16 +6,16 @@ Python3 library for single-room energy recovery ventilators from Vents / Blauber
 	pip3 install pyEcoventV2
 
 ## Example usage
-	from ecovent import Fan
+	from ecoventv2 import Fan
 	""" Create a new fan with IP Address """
-	""" The Fan object takes 'host', 'name', 'port' as arguments """
+	""" The Fan object takes 'host', 'password', 'fan_id', 'name', 'port' as arguments """
 	""" 'host' (IP address) is the only mandatory argument """
 	""" 'name' is optional and will default to ecofan """
-	""" 'port' is also optional and will default to 4000 """"
+	""" 'port' is also optional and will default to 4000 """
 	fan=Fan("192.168.0.22")
 	
-	""" Optinally create a Fan with a name  
-	fan=Fan("192.168.0.22", "Cellar Fan")
+	""" Optionally create a Fan with a name """
+	fan=Fan("192.168.0.22", name="Cellar Fan")
 
 	""" Update the current values of the fan """
 	fan.update()
@@ -51,8 +51,8 @@ The intended usage of this library is to include ventilation fans from Vents / B
 This library has only been tested on the following fans:
 - [Twinfresh Expert RW1-50](http://vents-us.com/item/5262/VENTS_TwinFresh_Expert_RW1-50-2_Wi-Fi/)
 - [Blauberg VENTO Expert A50-1 W](https://blaubergventilatoren.de/en/product/vento-expert-a50-1-w)
-- [Blauberg VENTO Expert A50-1 W](https://blaubergventilatoren.de/en/product/vento-expert-a50-1-w)
 - [Blauberg VENTO EXPERT DUO A30-1 W](https://blaubergventilatoren.de/en/series/vento-expert-duo-a30-1-s10-w-v2)
+- TwinFresh Style Wifi V.2 / Oxxify smart 50
 
 Fans from Flexit are identical and should work, but this is not yet tested:
 - [Single room ventilator Roomie Dual](https://www.flexit.no/en/products/single_room_ventilator/single_room_ventilator_roomie_dual/single_room_ventilator_roomie_dual/)
